@@ -1,12 +1,12 @@
 using UnityEngine;
 
-namespace Chess
+namespace Chess.Game
 {
     public class GameManager : MonoBehaviour
     {
         public static GameManager instance;
-        [SerializeField]
-        private Board board;
+        public Board boardView;
+        public Chess.Board board;
 
         void Awake()
         {
@@ -14,12 +14,10 @@ namespace Chess
                 instance = this;
             else
                 Destroy(gameObject);
-        }
 
-        void Start()
-        {
-            board.GenerateBoard();
-            board.InitializeBoard(FenUtility.startFen);
+            board = new Chess.Board();
+            board.LoadPositionFromFEN(FenUtility.startFen);
+            boardView.InitializeBoard(board.squares);
         }
     }
 }

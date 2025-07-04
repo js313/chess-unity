@@ -6,7 +6,7 @@ namespace Chess
     {
         public const string startFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
-        static Dictionary<char, int> pieceTypeFromSymbol = new Dictionary<char, int>()
+        static Dictionary<char, int> pieceTypeFromSymbol = new()
         {
             ['k'] = Piece.King,
             ['p'] = Piece.Pawn,
@@ -24,25 +24,26 @@ namespace Chess
             //public bool blackCastleKingside;
             //public bool blackCastleQueenside;
             //public int epFile;
-            //public bool whiteToMove;
+            public bool whiteToMove;
             //public int plyCount;
 
             public LoadedPositionInfo()
             {
                 squares = new int[64];
+                whiteToMove = true;
             }
         }
 
         public static LoadedPositionInfo PositionFromFen(string fen)
         {
-            LoadedPositionInfo loadedPositionInfo = new LoadedPositionInfo();
+            LoadedPositionInfo loadedPositionInfo = new();
+            string[] sections = fen.Split(' ');
 
             int rank = 7, file = 0;
 
-            foreach (char symbol in fen)
+            foreach (char symbol in sections[0])
             {
                 int idx = rank * 8 + file;
-                if (symbol == ' ') break;
                 if (symbol == '/')
                 {
                     rank--;
@@ -63,6 +64,8 @@ namespace Chess
                 }
                 file++;
             }
+
+            loadedPositionInfo.whiteToMove = sections[1] == "w";
 
             return loadedPositionInfo;
         }
