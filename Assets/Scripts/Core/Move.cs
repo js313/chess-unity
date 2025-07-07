@@ -8,7 +8,7 @@ namespace Chess
     public enum MoveType
     {
         None,
-        Capture,
+        //Capture,
         EnPassantCapture,
         Castling,
         PromoteToQueen,
