@@ -43,22 +43,27 @@ namespace Chess
             }
         }
 
+        // Not validated by design, if move was valid only then this will get called, basically it trusts the caller
         public void MovePiece(Move move)
         {
+            // Uppdate piece list
             int colorIndex = Piece.Colour(squares[move.fromSquare]) == Piece.White ? WhiteIndex : BlackIndex;
             PieceList piece = GetPieceListAt(move.fromSquare);
+            PieceList pieceAtDestination = GetPieceListAt(move.toSquare);
+            pieceAtDestination?.RemovePieceAtSquare(move.toSquare);
             if (piece == null && Piece.PieceType(squares[move.fromSquare]) == Piece.King)
                 kingSquare[colorIndex] = move.toSquare;
             else
                 piece?.MovePiece(move.fromSquare, move.toSquare);
 
+            // Update the board representation
             squares[move.toSquare] = squares[move.fromSquare];
             squares[move.fromSquare] = 0;
         }
 
         public int GetPieceAt(int idx) => squares[idx];
 
-        public PieceList GetPieceListAt(int idx)
+        private PieceList GetPieceListAt(int idx)
         {
             int colorIndex = Piece.Colour(squares[idx]) == Piece.White ? WhiteIndex : BlackIndex;
 
@@ -74,6 +79,11 @@ namespace Chess
                 return pawns[colorIndex];
 
             return null;
+        }
+
+        public void SwitchTurns()
+        {
+            colorToMove = Piece.Colour(colorToMove) == Piece.White ? Piece.Black : Piece.White;
         }
     }
 }

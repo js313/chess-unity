@@ -41,6 +41,8 @@ namespace Chess.Game
                     {
                         board.MovePiece(validMove);
                         boardView.MovePiece(validMove);
+
+                        board.SwitchTurns();
                     }
                 }
 

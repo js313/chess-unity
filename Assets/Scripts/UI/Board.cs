@@ -43,6 +43,7 @@ namespace Chess.Game
             return new Vector2((file - boardSize / 2) * squareSize + squareSize / 2, (rank - boardSize / 2) * squareSize + squareSize / 2);
         }
 
+        // Not validated by design, if move was valid only then this will get called, basically it trusts the caller
         public void MovePiece(Move move)
         {
             if (!pieceInstances.TryGetValue(move.fromSquare, out PieceInstance piece)) return;
@@ -50,6 +51,7 @@ namespace Chess.Game
             int rank = move.toSquare / 8;
             int file = move.toSquare % 8;
 
+            // Take piece from destination square
             pieceInstances.TryGetValue(move.toSquare, out PieceInstance takePiece);
             if (takePiece != null) Destroy(takePiece.gameObject);
             pieceInstances.Remove(move.toSquare);
