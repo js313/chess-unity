@@ -141,11 +141,12 @@ namespace Chess
                 int antiDiagSquare = startSquare + (pawnMove * 7);
                 int antiDiagSquareFile = antiDiagSquare % 8;
                 int endSquareDouble = startSquare + (pawnMove * 16);
+                int endSquareDoubleRank = endSquare / 8;
 
                 if (startSquareRank == 0 || startSquareRank == 7)
                 {
                     // Promotion
-                    break;
+                    continue;
                 }
 
                 if (board.squares[diagSquare] != Piece.None && Piece.Colour(board.squares[diagSquare]) != board.colorToMove && Math.Abs(startSquareFile - diagSquareFile) == 1)
@@ -155,7 +156,7 @@ namespace Chess
 
                 if (board.squares[endSquare] != Piece.None) continue;
                 moves.Add(new(startSquare, endSquare, MoveType.None));
-                if (board.squares[endSquareDouble] == Piece.None && startSquareRank == pawnStartingRank)
+                if (endSquareDoubleRank > 0 && endSquareDoubleRank < 7 && board.squares[endSquareDouble] == Piece.None && startSquareRank == pawnStartingRank)
                     moves.Add(new(startSquare, endSquareDouble, MoveType.PawnTwoForward));
             }
         }

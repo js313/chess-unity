@@ -45,10 +45,14 @@ namespace Chess.Game
 
         public void MovePiece(Move move)
         {
-            if (!pieceInstances.TryGetValue(move.fromSquare, out var piece)) return;
+            if (!pieceInstances.TryGetValue(move.fromSquare, out PieceInstance piece)) return;
 
             int rank = move.toSquare / 8;
             int file = move.toSquare % 8;
+
+            pieceInstances.TryGetValue(move.toSquare, out PieceInstance takePiece);
+            if (takePiece != null) Destroy(takePiece.gameObject);
+            pieceInstances.Remove(move.toSquare);
 
             piece.SetPosition(new(rank, file), BoardToWorldPos(rank, file));
             pieceInstances[move.toSquare] = piece;
