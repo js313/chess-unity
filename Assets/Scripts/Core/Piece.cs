@@ -1,6 +1,6 @@
 namespace Chess
 {
-    public static class Piece
+    public static class Piece   // Taken from SebLaq
     {
         public const int None = 0;
         public const int King = 1;

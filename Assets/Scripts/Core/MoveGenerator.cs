@@ -129,12 +129,19 @@ namespace Chess
             PieceList myPawns = board.pawns[friendlyColor];
 
             int moveDirection = isWhiteToMove ? 8 : -8;
-            int startingRank = isWhiteToMove ? 1 : 6;
+            int spawnRank = isWhiteToMove ? 1 : 6;
             int rankBeforePromotion = isWhiteToMove ? 6 : 1;
+            int enPassantFile = ((int)(board.currentGameState >> 4) & 15) - 1;   // bits 4-7 storing enPassant file info
+            int enPassantRank = isWhiteToMove ? 4 : 3;
+            int enPassantSquare = -1;
+            if (enPassantFile != -1)
+                enPassantSquare = enPassantRank * 8 + enPassantFile;
+
             for (int i = 0; i < myPawns.Count; i++)
             {
                 int startSquare = myPawns[i];
                 int startSquareRank = startSquare / 8;
+                int startSquareFile = startSquare % 8;
 
                 bool isPromotion = startSquareRank == rankBeforePromotion;
                 MoveType[] promotionTypes = isPromotion
@@ -148,19 +155,23 @@ namespace Chess
                         moves.Add(new(startSquare, oneForward, type));
 
                     int twoForward = startSquare + 2 * moveDirection;
-                    if (startSquareRank == startingRank && board.squares[twoForward] == Piece.None)
-                        moves.Add(new(startSquare, twoForward, MoveType.None));
+                    if (startSquareRank == spawnRank && board.squares[twoForward] == Piece.None)
+                        moves.Add(new(startSquare, twoForward, MoveType.PawnTwoForward));
                 }
 
                 int[] diags = { -1, 1 };
                 foreach (int diag in diags)
                 {
+                    if ((startSquareFile == 0 && diag == -1) || (startSquareFile == 7 && diag == 1)) continue;
                     int piece = board.squares[oneForward + diag];
                     if (piece == Piece.None || Piece.Colour(piece) == board.colorToMove) continue;
 
                     foreach (MoveType type in promotionTypes)
                         moves.Add(new(startSquare, oneForward + diag, type));
                 }
+
+                if (enPassantSquare != -1 && startSquareRank == enPassantRank && (enPassantFile + 1 == startSquareFile || enPassantFile == startSquareFile + 1))
+                    moves.Add(new(startSquare, (enPassantRank * 8 + enPassantFile) + moveDirection, MoveType.EnPassantCapture));
             }
         }
 

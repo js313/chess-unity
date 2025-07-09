@@ -1,6 +1,6 @@
 namespace Chess
 {
-    public class PieceList
+    public class PieceList  // Taken from SebLaq
     {
         // Indices of squares occupied by given piece type (only elements up to Count are valid, the rest are unused/garbage)
         public int[] occupiedSquares;

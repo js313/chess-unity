@@ -16,6 +16,12 @@ namespace Chess
         public PieceList[] knights;
         public PieceList[] pawns;
 
+        // Bits 0-3 store white and black kingside/queenside castling legality
+        // Bits 4-7 store file of ep square (starting at 1, so 0 = no ep square)
+        // Bits 8-13 captured piece
+        // Bits 14-... fifty mover counter
+        public uint currentGameState;   // Taken from SebLaq
+
         public Board()
         {
             knights = new PieceList[] { new(10), new(10) };
@@ -44,53 +50,94 @@ namespace Chess
         }
 
         // Not validated by design, if move was valid only then this will get called, basically it trusts the caller
-        public void MovePiece(Move move)
+        public void MakeMove(Move validMove)
         {
-            // Uppdate piece list
-            int colorIndex = Piece.Colour(squares[move.fromSquare]) == Piece.White ? WhiteIndex : BlackIndex;
-            PieceList piece = GetPieceListAt(move.fromSquare);
-            PieceList pieceAtDestination = GetPieceListAt(move.toSquare);
-            pieceAtDestination?.RemovePieceAtSquare(move.toSquare);
-            if (piece == null && Piece.PieceType(squares[move.fromSquare]) == Piece.King)
-                kingSquare[colorIndex] = move.toSquare;
+            // reset game state, to set it again
+            currentGameState = 0;
+            // Update piece list
+            int colorIndex = Piece.Colour(squares[validMove.fromSquare]) == Piece.White ? WhiteIndex : BlackIndex;
+            PieceList piece = GetPieceListAt(validMove.fromSquare);
+
+            // NEEDS REFACTORING
+            if (validMove.type == MoveType.PawnTwoForward)
+            {
+                currentGameState |= (ushort)(((validMove.toSquare % 8) + 1) << 4);
+            }
+            else if (validMove.IsPromotion())
+            {
+                PromotePawn(validMove);
+                return;
+            }
+            else if (validMove.type == MoveType.EnPassantCapture)
+            {
+                EnPassant(validMove);
+                return;
+            }
+
+            PieceList pieceAtDestination = GetPieceListAt(validMove.toSquare);
+            pieceAtDestination?.RemovePieceAtSquare(validMove.toSquare);
+
+            if (piece == null && Piece.PieceType(squares[validMove.fromSquare]) == Piece.King)
+                kingSquare[colorIndex] = validMove.toSquare;
             else
-                piece?.MovePiece(move.fromSquare, move.toSquare);
+                piece?.MovePiece(validMove.fromSquare, validMove.toSquare);
 
             // Update the board representation
-            squares[move.toSquare] = squares[move.fromSquare];
-            squares[move.fromSquare] = 0;
+            squares[validMove.toSquare] = squares[validMove.fromSquare];
+            squares[validMove.fromSquare] = 0;
+            SwitchTurns();
         }
 
-        public void PromotePawn(Move move)
+        void PromotePawn(Move validMove)
         {
-            int colorIndex = Piece.Colour(squares[move.fromSquare]) == Piece.White ? WhiteIndex : BlackIndex;
+            int colorIndex = Piece.Colour(squares[validMove.fromSquare]) == Piece.White ? WhiteIndex : BlackIndex;
 
-            PieceList piece = GetPieceListAt(move.fromSquare);
-            piece?.RemovePieceAtSquare(move.fromSquare);
-            PieceList pieceAtDestination = GetPieceListAt(move.toSquare);
-            pieceAtDestination?.RemovePieceAtSquare(move.toSquare);
+            // Doing this everywhere, REFACTOR
+            PieceList piece = GetPieceListAt(validMove.fromSquare);
+            piece?.RemovePieceAtSquare(validMove.fromSquare);
+            PieceList pieceAtDestination = GetPieceListAt(validMove.toSquare);
+            pieceAtDestination?.RemovePieceAtSquare(validMove.toSquare);
 
-            squares[move.fromSquare] = 0;
-            if (move.type == MoveType.PromoteToQueen)
+            squares[validMove.fromSquare] = 0;
+            if (validMove.type == MoveType.PromoteToQueen)
             {
-                queens[colorIndex].AddPieceAtSquare(move.toSquare);
-                squares[move.toSquare] = Piece.Queen | colorToMove;
+                queens[colorIndex].AddPieceAtSquare(validMove.toSquare);
+                squares[validMove.toSquare] = Piece.Queen | colorToMove;
             }
-            else if (move.type == MoveType.PromoteToKnight)
+            else if (validMove.type == MoveType.PromoteToKnight)
             {
-                knights[colorIndex].AddPieceAtSquare(move.toSquare);
-                squares[move.toSquare] = Piece.Knight | colorToMove;
+                knights[colorIndex].AddPieceAtSquare(validMove.toSquare);
+                squares[validMove.toSquare] = Piece.Knight | colorToMove;
             }
-            else if (move.type == MoveType.PromoteToRook)
+            else if (validMove.type == MoveType.PromoteToRook)
             {
-                rooks[colorIndex].AddPieceAtSquare(move.toSquare);
-                squares[move.toSquare] = Piece.Rook | colorToMove;
+                rooks[colorIndex].AddPieceAtSquare(validMove.toSquare);
+                squares[validMove.toSquare] = Piece.Rook | colorToMove;
             }
-            else if (move.type == MoveType.PromoteToBishop)
+            else if (validMove.type == MoveType.PromoteToBishop)
             {
-                bishops[colorIndex].AddPieceAtSquare(move.toSquare);
-                squares[move.toSquare] = Piece.Bishop | colorToMove;
+                bishops[colorIndex].AddPieceAtSquare(validMove.toSquare);
+                squares[validMove.toSquare] = Piece.Bishop | colorToMove;
             }
+            SwitchTurns();
+        }
+
+        void EnPassant(Move validMove)
+        {
+            int captureDirection = colorToMove == Piece.White ? -8 : 8;
+            int squareToCapture = validMove.toSquare + captureDirection;
+
+            // Doing this everywhere, REFACTOR
+            PieceList pieceAtDestination = GetPieceListAt(squareToCapture);
+            pieceAtDestination?.RemovePieceAtSquare(squareToCapture);
+
+            PieceList piece = GetPieceListAt(validMove.fromSquare);
+            piece?.MovePiece(validMove.fromSquare, validMove.toSquare);
+
+            squares[squareToCapture] = 0;
+            squares[validMove.toSquare] = squares[validMove.fromSquare];
+            squares[validMove.fromSquare] = 0;
+            SwitchTurns();
         }
 
         public int GetPieceAt(int idx) => squares[idx];
@@ -113,7 +160,7 @@ namespace Chess
             return null;
         }
 
-        public void SwitchTurns()
+        private void SwitchTurns()
         {
             colorToMove = Piece.Colour(colorToMove) == Piece.White ? Piece.Black : Piece.White;
         }

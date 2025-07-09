@@ -18,7 +18,6 @@ namespace Chess.Game
         private GameObject highlightContainer;
 
         private Dictionary<int, Sprite> pieceSpriteDict;
-        private Dictionary<int, PieceInstance> pieceInstances;
         public readonly int boardSize = 8;
         public float squareSize;
 
@@ -35,7 +34,6 @@ namespace Chess.Game
             spriteRenderer.sprite = pieceSprite;
 
             PieceInstance instance = new(piece, new(rank, file), pieceGameObject);
-            pieceInstances[GetIndex(rank, file)] = instance;
         }
 
         private Vector2 BoardToWorldPos(int rank, int file)
@@ -43,51 +41,14 @@ namespace Chess.Game
             return new Vector2((file - boardSize / 2) * squareSize + squareSize / 2, (rank - boardSize / 2) * squareSize + squareSize / 2);
         }
 
-        // Not validated by design, if move was valid only then this will get called, basically it trusts the caller
-        public void MovePiece(Move move)
-        {
-            if (!pieceInstances.TryGetValue(move.fromSquare, out PieceInstance piece)) return;
-
-            int rank = move.toSquare / 8;
-            int file = move.toSquare % 8;
-
-            // Take piece from destination square
-            pieceInstances.TryGetValue(move.toSquare, out PieceInstance takePiece);
-            if (takePiece != null) Destroy(takePiece.gameObject);
-            pieceInstances.Remove(move.toSquare);
-
-            piece.SetPosition(new(rank, file), BoardToWorldPos(rank, file));
-            pieceInstances[move.toSquare] = piece;
-            pieceInstances.Remove(move.fromSquare);
-        }
-
-        public void PromotePawn(Move move, int promotedPiece)
-        {
-            if (!pieceInstances.TryGetValue(move.fromSquare, out PieceInstance piece)) return;
-
-            int rank = move.toSquare / 8;
-            int file = move.toSquare % 8;
-
-            // Take piece from destination square
-            pieceInstances.TryGetValue(move.toSquare, out PieceInstance takePiece);
-            if (takePiece != null) Destroy(takePiece.gameObject);
-            pieceInstances.Remove(move.toSquare);
-
-            Destroy(piece.gameObject);
-            pieceInstances.Remove(move.fromSquare);
-
-            CreatePiece(promotedPiece, rank, file);
-        }
-
         private int GetIndex(int rank, int file) => rank * boardSize + file;
 
         private void ClearBoard()
         {
-            foreach (KeyValuePair<int, PieceInstance> pieceInstance in pieceInstances)
+            foreach (Transform child in transform)
             {
-                if (pieceInstance.Value != null) Destroy(pieceInstance.Value.gameObject);
+                Destroy(child.gameObject);
             }
-            pieceInstances.Clear();
         }
 
         private void InstantiateSquare(int index, Color squareColor, int sortingColor, string name, Transform parent)
@@ -134,16 +95,20 @@ namespace Chess.Game
 
             float boardWorldSize = Mathf.Min(screenWidth, screenHeight);
             squareSize = boardWorldSize / boardSize;
-            GenerateBoard();
 
             pieceSpriteDict = new Dictionary<int, Sprite>();
-            pieceInstances = new Dictionary<int, PieceInstance>();
             foreach (PieceSprite ps in pieceSprites)
             {
                 pieceSpriteDict[ps.piece] = ps.sprite;
             }
 
+            RefreshBoard(squares);
+        }
+
+        public void RefreshBoard(int[] squares)
+        {
             ClearBoard();
+            GenerateBoard();
             for (int idx = 0; idx < squares.Length; idx++)
             {
                 int piece = squares[idx];

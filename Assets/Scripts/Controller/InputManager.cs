@@ -40,27 +40,10 @@ namespace Chess.Game
                 for (int moveIndex = 0; moveIndex < validMoves.Count; moveIndex++)
                 {
                     Move validMove = validMoves[moveIndex];
-                    if (validMove.fromSquare == selectedIdx && validMove.toSquare == idx)
+                    if (validMove.fromSquare == selectedIdx && validMove.toSquare == idx && (!validMove.IsPromotion() || validMove.type == promoteTo))
                     {
-                        if (validMove.type == MoveType.None || validMove.type == MoveType.PawnTwoForward)
-                        {
-                            board.MovePiece(validMove);
-                            boardView.MovePiece(validMove);
-
-                            // Always switch turns AFTER the movement is settled
-                            board.SwitchTurns();
-                        }
-                        else if (validMove.IsPromotion())
-                        {
-                            if (validMove.type == promoteTo)
-                            {
-                                board.PromotePawn(validMove);
-                                boardView.PromotePawn(validMove, board.squares[validMove.toSquare]);    // call after board.PromotePawn, search for a beter design
-
-                                // Always switch turns AFTER the movement is settled
-                                board.SwitchTurns();
-                            }
-                        }
+                        board.MakeMove(validMove);
+                        boardView.RefreshBoard(board.squares);
                     }
                 }
 
