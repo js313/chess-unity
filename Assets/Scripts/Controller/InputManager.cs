@@ -5,6 +5,9 @@ namespace Chess.Game
 {
     public class InputManager : MonoBehaviour
     {
+        // Make a UI selection for promotion
+        [SerializeField]
+        private MoveType promoteTo = MoveType.PromoteToQueen;
         private Board boardView;
         private Chess.Board board;
         private int selectedIdx = -1;
@@ -39,10 +42,25 @@ namespace Chess.Game
                     Move validMove = validMoves[moveIndex];
                     if (validMove.fromSquare == selectedIdx && validMove.toSquare == idx)
                     {
-                        board.MovePiece(validMove);
-                        boardView.MovePiece(validMove);
+                        if (validMove.type == MoveType.None || validMove.type == MoveType.PawnTwoForward)
+                        {
+                            board.MovePiece(validMove);
+                            boardView.MovePiece(validMove);
 
-                        board.SwitchTurns();
+                            // Always switch turns AFTER the movement is settled
+                            board.SwitchTurns();
+                        }
+                        else if (validMove.IsPromotion())
+                        {
+                            if (validMove.type == promoteTo)
+                            {
+                                board.PromotePawn(validMove);
+                                boardView.PromotePawn(validMove, board.squares[validMove.toSquare]);    // call after board.PromotePawn, search for a beter design
+
+                                // Always switch turns AFTER the movement is settled
+                                board.SwitchTurns();
+                            }
+                        }
                     }
                 }
 

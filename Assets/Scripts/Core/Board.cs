@@ -61,6 +61,38 @@ namespace Chess
             squares[move.fromSquare] = 0;
         }
 
+        public void PromotePawn(Move move)
+        {
+            int colorIndex = Piece.Colour(squares[move.fromSquare]) == Piece.White ? WhiteIndex : BlackIndex;
+
+            PieceList piece = GetPieceListAt(move.fromSquare);
+            piece?.RemovePieceAtSquare(move.fromSquare);
+            PieceList pieceAtDestination = GetPieceListAt(move.toSquare);
+            pieceAtDestination?.RemovePieceAtSquare(move.toSquare);
+
+            squares[move.fromSquare] = 0;
+            if (move.type == MoveType.PromoteToQueen)
+            {
+                queens[colorIndex].AddPieceAtSquare(move.toSquare);
+                squares[move.toSquare] = Piece.Queen | colorToMove;
+            }
+            else if (move.type == MoveType.PromoteToKnight)
+            {
+                knights[colorIndex].AddPieceAtSquare(move.toSquare);
+                squares[move.toSquare] = Piece.Knight | colorToMove;
+            }
+            else if (move.type == MoveType.PromoteToRook)
+            {
+                rooks[colorIndex].AddPieceAtSquare(move.toSquare);
+                squares[move.toSquare] = Piece.Rook | colorToMove;
+            }
+            else if (move.type == MoveType.PromoteToBishop)
+            {
+                bishops[colorIndex].AddPieceAtSquare(move.toSquare);
+                squares[move.toSquare] = Piece.Bishop | colorToMove;
+            }
+        }
+
         public int GetPieceAt(int idx) => squares[idx];
 
         private PieceList GetPieceListAt(int idx)

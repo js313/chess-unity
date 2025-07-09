@@ -32,6 +32,11 @@ namespace Chess
             this.type = type;
         }
 
+        public bool IsPromotion()
+        {
+            return type == MoveType.PromoteToQueen || type == MoveType.PromoteToKnight || type == MoveType.PromoteToRook || type == MoveType.PromoteToBishop;
+        }
+
         public override string ToString()
         {
             return $"Move from {fromSquare} to {toSquare}, Type: {type}";

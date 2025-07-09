@@ -128,36 +128,39 @@ namespace Chess
         {
             PieceList myPawns = board.pawns[friendlyColor];
 
-            int pawnMove = isWhiteToMove ? 1 : -1;
-            int pawnStartingRank = isWhiteToMove ? 1 : 6;
+            int moveDirection = isWhiteToMove ? 8 : -8;
+            int startingRank = isWhiteToMove ? 1 : 6;
+            int rankBeforePromotion = isWhiteToMove ? 6 : 1;
             for (int i = 0; i < myPawns.Count; i++)
             {
                 int startSquare = myPawns[i];
                 int startSquareRank = startSquare / 8;
-                int startSquareFile = startSquare % 8;
-                int endSquare = startSquare + (pawnMove * 8);
-                int diagSquare = startSquare + (pawnMove * 9);
-                int diagSquareFile = diagSquare % 8;
-                int antiDiagSquare = startSquare + (pawnMove * 7);
-                int antiDiagSquareFile = antiDiagSquare % 8;
-                int endSquareDouble = startSquare + (pawnMove * 16);
-                int endSquareDoubleRank = endSquare / 8;
 
-                if (startSquareRank == 0 || startSquareRank == 7)
+                bool isPromotion = startSquareRank == rankBeforePromotion;
+                MoveType[] promotionTypes = isPromotion
+                    ? new[] { MoveType.PromoteToQueen, MoveType.PromoteToRook, MoveType.PromoteToBishop, MoveType.PromoteToKnight }
+                    : new[] { MoveType.None };
+
+                int oneForward = startSquare + moveDirection;
+                if (board.squares[oneForward] == Piece.None)
                 {
-                    // Promotion
-                    continue;
+                    foreach (MoveType type in promotionTypes)
+                        moves.Add(new(startSquare, oneForward, type));
+
+                    int twoForward = startSquare + 2 * moveDirection;
+                    if (startSquareRank == startingRank && board.squares[twoForward] == Piece.None)
+                        moves.Add(new(startSquare, twoForward, MoveType.None));
                 }
 
-                if (board.squares[diagSquare] != Piece.None && Piece.Colour(board.squares[diagSquare]) != board.colorToMove && Math.Abs(startSquareFile - diagSquareFile) == 1)
-                    moves.Add(new(startSquare, diagSquare, MoveType.None));
-                if (board.squares[antiDiagSquare] != Piece.None && Piece.Colour(board.squares[antiDiagSquare]) != board.colorToMove && Math.Abs(startSquareFile - antiDiagSquareFile) == 1)
-                    moves.Add(new(startSquare, antiDiagSquare, MoveType.None));
+                int[] diags = { -1, 1 };
+                foreach (int diag in diags)
+                {
+                    int piece = board.squares[oneForward + diag];
+                    if (piece == Piece.None || Piece.Colour(piece) == board.colorToMove) continue;
 
-                if (board.squares[endSquare] != Piece.None) continue;
-                moves.Add(new(startSquare, endSquare, MoveType.None));
-                if (endSquareDoubleRank > 0 && endSquareDoubleRank < 7 && board.squares[endSquareDouble] == Piece.None && startSquareRank == pawnStartingRank)
-                    moves.Add(new(startSquare, endSquareDouble, MoveType.PawnTwoForward));
+                    foreach (MoveType type in promotionTypes)
+                        moves.Add(new(startSquare, oneForward + diag, type));
+                }
             }
         }
 

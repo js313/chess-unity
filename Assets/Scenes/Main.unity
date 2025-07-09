@@ -414,6 +414,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7435620d4defb154ab52d3b0fa20dbd8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  promoteTo: 3
 --- !u!4 &1183902502
 Transform:
   m_ObjectHideFlags: 0
@@ -511,6 +512,7 @@ MonoBehaviour:
   - name: WhiteRook
     piece: 14
     sprite: {fileID: 5600290155524006502, guid: 4784732616322624babfb1c6d8cdde8a, type: 3}
+  squareSize: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

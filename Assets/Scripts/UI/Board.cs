@@ -61,6 +61,24 @@ namespace Chess.Game
             pieceInstances.Remove(move.fromSquare);
         }
 
+        public void PromotePawn(Move move, int promotedPiece)
+        {
+            if (!pieceInstances.TryGetValue(move.fromSquare, out PieceInstance piece)) return;
+
+            int rank = move.toSquare / 8;
+            int file = move.toSquare % 8;
+
+            // Take piece from destination square
+            pieceInstances.TryGetValue(move.toSquare, out PieceInstance takePiece);
+            if (takePiece != null) Destroy(takePiece.gameObject);
+            pieceInstances.Remove(move.toSquare);
+
+            Destroy(piece.gameObject);
+            pieceInstances.Remove(move.fromSquare);
+
+            CreatePiece(promotedPiece, rank, file);
+        }
+
         private int GetIndex(int rank, int file) => rank * boardSize + file;
 
         private void ClearBoard()
