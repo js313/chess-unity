@@ -190,6 +190,31 @@ namespace Chess
                 if (Piece.Colour(board.squares[endSquare]) == board.colorToMove) continue;
                 moves.Add(new(startSquare, endSquare, MoveType.None));
             }
+
+            // Castling
+
+            int kingSideMask = isWhiteToMove ? 1 : 4;
+            int queenSideMask = isWhiteToMove ? 2 : 8;
+
+            // TODO: calculate check legalities
+            if ((board.currentGameState & kingSideMask) != 0)
+            {
+                int kingTargetSquare = isWhiteToMove ? 6 : 62;
+                int rookTargetSquare = isWhiteToMove ? 5 : 61;
+                if (board.squares[kingTargetSquare] == Piece.None && board.squares[rookTargetSquare] == Piece.None)
+                {
+                    moves.Add(new(startSquare, kingTargetSquare, MoveType.Castling));
+                }
+            }
+            if ((board.currentGameState & queenSideMask) != 0)
+            {
+                int kingTargetSquare = isWhiteToMove ? 2 : 58;
+                int rookTargetSquare = isWhiteToMove ? 3 : 59;
+                if (board.squares[kingTargetSquare] == Piece.None && board.squares[rookTargetSquare] == Piece.None && board.squares[kingTargetSquare - 1] == Piece.None)
+                {
+                    moves.Add(new(startSquare, kingTargetSquare, MoveType.Castling));
+                }
+            }
         }
     }
 }

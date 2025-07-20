@@ -41,14 +41,10 @@ namespace Chess.Game
             return new Vector2((file - boardSize / 2) * squareSize + squareSize / 2, (rank - boardSize / 2) * squareSize + squareSize / 2);
         }
 
-        private int GetIndex(int rank, int file) => rank * boardSize + file;
-
         private void ClearBoard()
         {
             foreach (Transform child in transform)
-            {
                 Destroy(child.gameObject);
-            }
         }
 
         private void InstantiateSquare(int index, Color squareColor, int sortingColor, string name, Transform parent)
@@ -98,9 +94,7 @@ namespace Chess.Game
 
             pieceSpriteDict = new Dictionary<int, Sprite>();
             foreach (PieceSprite ps in pieceSprites)
-            {
                 pieceSpriteDict[ps.piece] = ps.sprite;
-            }
 
             RefreshBoard(squares);
         }
